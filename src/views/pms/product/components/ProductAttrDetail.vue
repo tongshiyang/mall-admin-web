@@ -1,6 +1,6 @@
 <template>
   <div style="margin-top: 50px">
-    <el-form :model="value" ref="productAttrForm" label-width="120px" style="width: 720px" size="small">
+    <el-form :model="value" ref="productAttrForm" label-width="120px" class="form-inner-container" size="small">
       <el-form-item label="属性类型：">
         <el-select v-model="value.productAttributeCategoryId"
                    placeholder="请选择属性类型"
@@ -49,10 +49,18 @@
           </el-table-column>
           <el-table-column
             label="销售价格"
-            width="80"
+            width="100"
             align="center">
             <template slot-scope="scope">
               <el-input v-model="scope.row.price"></el-input>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="促销价格"
+            width="100"
+            align="center">
+            <template slot-scope="scope">
+              <el-input v-model="scope.row.promotionPrice"></el-input>
             </template>
           </el-table-column>
           <el-table-column
@@ -73,6 +81,7 @@
           </el-table-column>
           <el-table-column
             label="SKU编号"
+            width="160"
             align="center">
             <template slot-scope="scope">
               <el-input v-model="scope.row.skuCode"></el-input>
@@ -99,6 +108,11 @@
           type="primary"
           style="margin-top: 20px"
           @click="handleSyncProductSkuPrice">同步价格
+        </el-button>
+        <el-button
+          type="primary"
+          style="margin-top: 20px"
+          @click="handleSyncProductSkuStock">同步库存
         </el-button>
       </el-form-item>
       <el-form-item label="属性图片：" v-if="hasAttrPic">
@@ -129,7 +143,7 @@
       <el-form-item label="商品相册：">
         <multi-upload v-model="selectProductPics"></multi-upload>
       </el-form-item>
-      <el-form-item label="规格参数：">
+      <el-form-item label="商品详情：">
         <el-tabs v-model="activeHtmlName" type="card">
           <el-tab-pane label="电脑端详情" name="pc">
             <tinymce :width="595" :height="300" v-model="value.detailHtml"></tinymce>
@@ -325,30 +339,33 @@
       },
       //获取选中的属性值
       getEditAttrValues(index) {
-        let values = [];
+        let values = new Set();
         if (index === 0) {
           for (let i = 0; i < this.value.skuStockList.length; i++) {
             let sku = this.value.skuStockList[i];
-            if (sku.sp1 != null && values.indexOf(sku.sp1) === -1) {
-              values.push(sku.sp1);
+            let spData = JSON.parse(sku.spData);
+            if (spData!= null && spData.length>=1) {
+              values.add(spData[0].value);
             }
           }
         } else if (index === 1) {
           for (let i = 0; i < this.value.skuStockList.length; i++) {
             let sku = this.value.skuStockList[i];
-            if (sku.sp2 != null && values.indexOf(sku.sp2) === -1) {
-              values.push(sku.sp2);
+            let spData = JSON.parse(sku.spData);
+            if (spData!= null && spData.length>=2) {
+              values.add(spData[1].value);
             }
           }
         } else {
           for (let i = 0; i < this.value.skuStockList.length; i++) {
             let sku = this.value.skuStockList[i];
-            if (sku.sp3 != null && values.indexOf(sku.sp3) === -1) {
-              values.push(sku.sp3);
+            let spData = JSON.parse(sku.spData);
+            if (spData!= null && spData.length>=3) {
+              values.add(spData[2].value);
             }
           }
         }
-        return values;
+        return Array.from(values);
       },
       //获取属性的值
       getEditParamValue(id){
@@ -390,12 +407,11 @@
         this.selectProductAttr[idx].options.splice(index, 1);
       },
       getProductSkuSp(row, index) {
-        if (index === 0) {
-          return row.sp1;
-        } else if (index === 1) {
-          return row.sp2;
-        } else {
-          return row.sp3;
+        let spData = JSON.parse(row.spData);
+        if(spData!=null&&index<spData.length){
+          return spData[index].value;
+        }else{
+          return null;
         }
       },
       handleRefreshProductSkuList() {
@@ -415,10 +431,34 @@
           type: 'warning'
         }).then(() => {
           if(this.value.skuStockList!==null&&this.value.skuStockList.length>0){
+            let tempSkuList = [];
+            tempSkuList = tempSkuList.concat(tempSkuList,this.value.skuStockList);
             let price=this.value.skuStockList[0].price;
-            for(let i=0;i<this.value.skuStockList.length;i++){
-              this.value.skuStockList[i].price=price;
+            for(let i=0;i<tempSkuList.length;i++){
+              tempSkuList[i].price=price;
             }
+            this.value.skuStockList=[];
+            this.value.skuStockList=this.value.skuStockList.concat(this.value.skuStockList,tempSkuList);
+          }
+        });
+      },
+      handleSyncProductSkuStock(){
+        this.$confirm('将同步第一个sku的库存到所有sku,是否继续', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          if(this.value.skuStockList!==null&&this.value.skuStockList.length>0){
+            let tempSkuList = [];
+            tempSkuList = tempSkuList.concat(tempSkuList,this.value.skuStockList);
+            let stock=this.value.skuStockList[0].stock;
+            let lowStock=this.value.skuStockList[0].lowStock;
+            for(let i=0;i<tempSkuList.length;i++){
+              tempSkuList[i].stock=stock;
+              tempSkuList[i].lowStock=lowStock;
+            }
+            this.value.skuStockList=[];
+            this.value.skuStockList=this.value.skuStockList.concat(this.value.skuStockList,tempSkuList);
           }
         });
       },
@@ -427,53 +467,59 @@
         let skuList = this.value.skuStockList;
         //只有一个属性时
         if (this.selectProductAttr.length === 1) {
-          let values = this.selectProductAttr[0].values;
-          for (let i = 0; i < values.length; i++) {
+          let attr = this.selectProductAttr[0];
+          for (let i = 0; i < attr.values.length; i++) {
             skuList.push({
-              sp1: values[i]
+              spData: JSON.stringify([{key:attr.name,value:attr.values[i]}])
             });
           }
         } else if (this.selectProductAttr.length === 2) {
-          let values0 = this.selectProductAttr[0].values;
-          let values1 = this.selectProductAttr[1].values;
-          for (let i = 0; i < values0.length; i++) {
-            if (values1.length === 0) {
+          let attr0 = this.selectProductAttr[0];
+          let attr1 = this.selectProductAttr[1];
+          for (let i = 0; i < attr0.values.length; i++) {
+            if (attr1.values.length === 0) {
               skuList.push({
-                sp1: values0[i]
+                spData: JSON.stringify([{key:attr0.name,value:attr0.values[i]}])
               });
               continue;
             }
-            for (let j = 0; j < values1.length; j++) {
+            for (let j = 0; j < attr1.values.length; j++) {
+              let spData = [];
+              spData.push({key:attr0.name,value:attr0.values[i]});
+              spData.push({key:attr1.name,value:attr1.values[j]});
               skuList.push({
-                sp1: values0[i],
-                sp2: values1[j]
+                spData: JSON.stringify(spData)
               });
             }
           }
         } else {
-          let values0 = this.selectProductAttr[0].values;
-          let values1 = this.selectProductAttr[1].values;
-          let values2 = this.selectProductAttr[2].values;
-          for (let i = 0; i < values0.length; i++) {
-            if (values1.length === 0) {
+          let attr0 = this.selectProductAttr[0];
+          let attr1 = this.selectProductAttr[1];
+          let attr2 = this.selectProductAttr[2];
+          for (let i = 0; i < attr0.values.length; i++) {
+            if (attr1.values.length === 0) {
               skuList.push({
-                sp1: values0[i]
+                spData: JSON.stringify([{key:attr0.name,value:attr0.values[i]}])
               });
               continue;
             }
-            for (let j = 0; j < values1.length; j++) {
-              if (values2.length === 0) {
+            for (let j = 0; j < attr1.values.length; j++) {
+              if (attr2.values.length === 0) {
+                let spData = [];
+                spData.push({key:attr0.name,value:attr0.values[i]});
+                spData.push({key:attr1.name,value:attr1.values[j]});
                 skuList.push({
-                  sp1: values0[i],
-                  sp2: values1[j]
+                  spData: JSON.stringify(spData)
                 });
                 continue;
               }
-              for (let k = 0; k < values2.length; k++) {
+              for (let k = 0; k < attr2.values.length; k++) {
+                let spData = [];
+                spData.push({key:attr0.name,value:attr0.values[i]});
+                spData.push({key:attr1.name,value:attr1.values[j]});
+                spData.push({key:attr2.name,value:attr2.values[k]});
                 skuList.push({
-                  sp1: values0[i],
-                  sp2: values1[j],
-                  sp3: values2[k]
+                  spData: JSON.stringify(spData)
                 });
               }
             }
@@ -497,7 +543,8 @@
       //获取商品相关属性的图片
       getProductSkuPic(name){
         for(let i=0;i<this.value.skuStockList.length;i++){
-          if(name===this.value.skuStockList[i].sp1){
+          let spData = JSON.parse(this.value.skuStockList[i].spData);
+          if(name===spData[0].value){
             return this.value.skuStockList[i].pic;
           }
         }
@@ -527,7 +574,8 @@
       mergeProductAttrPics() {
         for (let i = 0; i < this.selectProductAttrPics.length; i++) {
           for (let j = 0; j < this.value.skuStockList.length; j++) {
-            if (this.value.skuStockList[j].sp1 === this.selectProductAttrPics[i].name) {
+            let spData = JSON.parse(this.value.skuStockList[j].spData);
+            if (spData[0].value === this.selectProductAttrPics[i].name) {
               this.value.skuStockList[j].pic = this.selectProductAttrPics[i].pic;
             }
           }

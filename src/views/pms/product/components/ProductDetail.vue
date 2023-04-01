@@ -77,7 +77,7 @@
     productAttributeCategoryId: null,
     //商品属性相关{productAttributeId: 0, value: ''}
     productAttributeValueList: [],
-    //商品sku库存信息{lowStock: 0, pic: '', price: 0, sale: 0, skuCode: '', sp1: '', sp2: '', sp3: '', stock: 0}
+    //商品sku库存信息{lowStock: 0, pic: '', price: 0, sale: 0, skuCode: '', spData: '', stock: 0}
     skuStockList: [],
     //商品相关专题{subjectId: 0}
     subjectProductRelationList: [],
@@ -178,6 +178,9 @@
 </script>
 <style>
   .form-container {
+    width: 960px;
+  }
+  .form-inner-container {
     width: 800px;
   }
 </style>
