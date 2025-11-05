@@ -4,25 +4,25 @@
       <el-row :gutter="20">
         <el-col :span="6">
           <div class="out-border">
-            <div class="layout-title">后台项目</div>
-            <div class="color-main address-content">
-              <a href="https://github.com/macrozheng/mall">mall</a>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="out-border">
-            <div class="layout-title">前端项目</div>
-            <div class="color-main address-content">
-              <a href="https://github.com/macrozheng/mall-admin-web">mall-admin-web</a>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="out-border">
             <div class="layout-title">学习教程</div>
             <div class="color-main address-content">
-              <a href="https://github.com/macrozheng/mall-learning">mall-learning</a>
+              <a href="https://www.macrozheng.com" target="_blank">mall学习教程</a>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="out-border">
+            <div class="layout-title">视频教程</div>
+            <div class="color-main address-content">
+              <a href="https://www.macrozheng.com/mall/catalog/mall_video.html" target="_blank">mall视频教程（2023）</a>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="out-border">
+            <div class="layout-title">点Star支持项目</div>
+            <div class="color-main address-content">
+              <a href="https://github.com/macrozheng/mall" target="_blank">mall项目</a>
             </div>
           </div>
         </el-col>
@@ -277,23 +277,15 @@
           shortcuts: [{
             text: '最近一周',
             onClick(picker) {
-              const end = new Date();
-              let start = new Date();
-              start.setFullYear(2018);
-              start.setMonth(10);
-              start.setDate(1);
-              end.setTime(start.getTime() + 3600 * 1000 * 24 * 7);
+              let start = new Date(2018,10,1);
+              const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 7);
               picker.$emit('pick', [start, end]);
             }
           }, {
             text: '最近一月',
             onClick(picker) {
-              const end = new Date();
-              let start = new Date();
-              start.setFullYear(2018);
-              start.setMonth(10);
-              start.setDate(1);
-              end.setTime(start.getTime() + 3600 * 1000 * 24 * 30);
+              let start = new Date(2018,10,1);
+              const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 30);
               picker.$emit('pick', [start, end]);
             }
           }]
@@ -324,12 +316,8 @@
         this.getData();
       },
       initOrderCountDate(){
-        let start = new Date();
-        start.setFullYear(2018);
-        start.setMonth(10);
-        start.setDate(1);
-        const end = new Date();
-        end.setTime(start.getTime() + 1000 * 60 * 60 * 24 * 7);
+        let start = new Date(2018,10,1);
+        const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 7);
         this.orderCountDate=[start,end];
       },
       getData(){
